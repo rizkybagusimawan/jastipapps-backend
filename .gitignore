@@ -1,0 +1,28 @@
+# Maven
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Environment / secrets
+.env
+.env.*
+application-local.properties
+application-local.yml
+
+# Java
+*.class
+
+# Environment / secrets
+src/main/resources/application.properties
+
+# Uploaded files
+uploads/
