@@ -19,36 +19,50 @@ public class UploadController {
     @Value("${app.upload.dir}")
     private String uploadDir;
 
-    @Value("${server.port}")
-    private String serverPort;
-
     @PostMapping
-    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, String>> uploadFile(
+            @RequestParam("file") MultipartFile file) {
+
         try {
             if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "File kosong"));
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "File kosong"));
             }
 
             String originalFilename = file.getOriginalFilename();
-            String extension = originalFilename != null && originalFilename.contains(".")
-                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
-                    : ".jpg";
+
+            String extension =
+                    originalFilename != null && originalFilename.contains(".")
+                            ? originalFilename.substring(
+                                    originalFilename.lastIndexOf("."))
+                            : ".jpg";
+
             String newFilename = UUID.randomUUID() + extension;
 
             File dir = new File(uploadDir);
+
             if (!dir.exists()) {
                 dir.mkdirs();
             }
 
             Path filePath = Path.of(uploadDir, newFilename);
+
             Files.write(filePath, file.getBytes());
 
-            // 10.0.2.2 supaya bisa diakses balik dari Android emulator
-            String fileUrl = "http://10.0.2.2:" + serverPort + "/uploads/" + newFilename;
+            // Simpan relative path agar bisa digunakan
+            // oleh Android, iOS, dan platform lainnya.
+            String fileUrl = "/uploads/" + newFilename;
 
-            return ResponseEntity.ok(Map.of("url", fileUrl));
+            return ResponseEntity.ok(
+                    Map.of("url", fileUrl)
+            );
+
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Gagal upload: " + e.getMessage()));
+            return ResponseEntity.internalServerError()
+                    .body(Map.of(
+                            "error",
+                            "Gagal upload: " + e.getMessage()
+                    ));
         }
     }
 }

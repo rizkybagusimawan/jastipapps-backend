@@ -4,6 +4,7 @@ import com.jastipapps.auth_service.dto.AuthDtos;
 import com.jastipapps.auth_service.dto.AuthDtos.*;
 import com.jastipapps.auth_service.entity.PasswordReset;
 import com.jastipapps.auth_service.entity.User;
+import com.jastipapps.auth_service.exception.InvalidCredentialsException;
 import com.jastipapps.auth_service.repository.PasswordResetRepository;
 import com.jastipapps.auth_service.repository.UserRepository;
 import com.jastipapps.auth_service.security.JwtUtil;
@@ -43,16 +44,35 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
-        User user = userRepository.findByEmail(req.email())
-                .orElseThrow(() -> new IllegalArgumentException("Email atau password salah"));
+    User user = userRepository.findByEmail(req.email())
+            .orElseThrow(() ->
+                    new InvalidCredentialsException(
+                            "Email atau password salah"
+                    )
+            );
 
-        if (!passwordEncoder.matches(req.password(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Email atau password salah");
-        }
-
-        String token = jwtUtil.generateToken(user.getId().toString(), user.getEmail(), user.getRole());
-        return new AuthResponse(token, user.getEmail(), user.getFullName(), user.getRole());
+    if (!passwordEncoder.matches(
+            req.password(),
+            user.getPasswordHash()
+    )) {
+        throw new InvalidCredentialsException(
+                "Email atau password salah"
+        );
     }
+
+    String token = jwtUtil.generateToken(
+            user.getId().toString(),
+            user.getEmail(),
+            user.getRole()
+    );
+
+    return new AuthResponse(
+            token,
+            user.getEmail(),
+            user.getFullName(),
+            user.getRole()
+    );
+}
 
     public void forgotPassword(ForgotPasswordRequest req) {
         User user = userRepository.findByEmail(req.email())

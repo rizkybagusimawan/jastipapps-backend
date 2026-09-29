@@ -56,4 +56,6 @@ public class AuthController {
         String userId = jwtUtil.extractUserId(token);
         return ResponseEntity.ok(authService.updateProfile(userId, req));
     }
+
+    
 }

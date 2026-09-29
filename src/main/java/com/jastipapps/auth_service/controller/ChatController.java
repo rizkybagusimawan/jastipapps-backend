@@ -20,7 +20,11 @@ public class ChatController {
     private final JwtUtil jwtUtil;
 
     private UUID extractUserId(String authHeader) {
-        return UUID.fromString(jwtUtil.extractUserId(authHeader.replace("Bearer ", "")));
+        return UUID.fromString(
+                jwtUtil.extractUserId(
+                        authHeader.replace("Bearer ", "")
+                )
+        );
     }
 
     @PostMapping
@@ -30,7 +34,14 @@ public class ChatController {
             @RequestHeader("Authorization") String authHeader
     ) {
         UUID senderId = extractUserId(authHeader);
-        return ResponseEntity.ok(chatService.sendMessage(orderId, req.message(), senderId));
+
+        return ResponseEntity.ok(
+                chatService.sendMessage(
+                        orderId,
+                        req,
+                        senderId
+                )
+        );
     }
 
     @GetMapping
@@ -39,6 +50,44 @@ public class ChatController {
             @RequestHeader("Authorization") String authHeader
     ) {
         UUID requesterId = extractUserId(authHeader);
-        return ResponseEntity.ok(chatService.getMessages(orderId, requesterId));
+
+        return ResponseEntity.ok(
+                chatService.getMessages(
+                        orderId,
+                        requesterId
+                )
+        );
+    }
+
+    @PatchMapping("/read")
+    public ResponseEntity<Void> markAsRead(
+            @PathVariable UUID orderId,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        UUID requesterId = extractUserId(authHeader);
+
+        chatService.markMessagesAsRead(
+                orderId,
+                requesterId
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/unread-count")
+    public ResponseEntity<UnreadCountResponse> getUnreadCount(
+            @PathVariable UUID orderId,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        UUID requesterId = extractUserId(authHeader);
+
+        long count = chatService.getUnreadCount(
+                orderId,
+                requesterId
+        );
+
+        return ResponseEntity.ok(
+                new UnreadCountResponse(count)
+        );
     }
 }
